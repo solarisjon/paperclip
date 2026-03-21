@@ -6,7 +6,7 @@ import { issuesApi } from "../api/issues";
 import { queryKeys } from "../lib/queryKeys";
 import { MarkdownBody } from "../components/MarkdownBody";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { cn } from "../lib/utils";
 
 /**
@@ -29,9 +29,27 @@ export function BoardChat() {
   const [statusText, setStatusText] = useState("");
   const [boardIssueId, setBoardIssueId] = useState<string | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [optimisticMessage, setOptimisticMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Reset state and clear cached comments when company changes
+  const prevCompanyRef = useRef(selectedCompanyId);
+  useEffect(() => {
+    if (prevCompanyRef.current !== selectedCompanyId) {
+      if (boardIssueId) {
+        queryClient.removeQueries({ queryKey: queryKeys.issues.comments(boardIssueId) });
+      }
+      setBoardIssueId(null);
+      setStreamingText("");
+      setStatusText("");
+      setInput("");
+      setSending(false);
+      setOptimisticMessage(null);
+      prevCompanyRef.current = selectedCompanyId;
+    }
+  }, [selectedCompanyId, boardIssueId, queryClient]);
 
   // Find or detect the board operations issue
   const { data: issues } = useQuery({
@@ -41,13 +59,14 @@ export function BoardChat() {
   });
 
   useEffect(() => {
-    if (!issues) return;
+    if (!issues) {
+      setBoardIssueId(null);
+      return;
+    }
     const boardIssue = issues.find(
       (i) => i.title === "Board Operations" && i.status !== "done" && i.status !== "cancelled",
     );
-    if (boardIssue) {
-      setBoardIssueId(boardIssue.id);
-    }
+    setBoardIssueId(boardIssue?.id ?? null);
   }, [issues]);
 
   // Fetch comments for the board issue
@@ -62,14 +81,26 @@ export function BoardChat() {
     .slice()
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
+  // Clear optimistic message once server-persisted comments include it
+  useEffect(() => {
+    if (optimisticMessage && sortedComments.length > 0) {
+      const lastUserComment = [...sortedComments]
+        .reverse()
+        .find((c) => !c.authorAgentId && c.authorUserId !== "board-concierge");
+      if (lastUserComment?.body === optimisticMessage) {
+        setOptimisticMessage(null);
+      }
+    }
+  }, [sortedComments, optimisticMessage]);
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [sortedComments.length, streamingText, statusText]);
+  }, [sortedComments.length, streamingText, statusText, optimisticMessage]);
 
   // Elapsed timer for thinking state
   useEffect(() => {
-    if (sending && !streamingText) {
+    if (sending) {
       setElapsedSec(0);
       elapsedTimerRef.current = setInterval(() => {
         setElapsedSec((prev) => prev + 1);
@@ -83,12 +114,15 @@ export function BoardChat() {
     return () => {
       if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     };
-  }, [sending, streamingText]);
+  }, [sending]);
 
   const sendMessage = useCallback(
     async (body: string) => {
       const trimmed = body.trim();
       if (!trimmed || sending || !selectedCompanyId) return;
+
+      // Show user message immediately
+      setOptimisticMessage(trimmed);
       setSending(true);
       setInput("");
       setStreamingText("");
@@ -211,7 +245,7 @@ export function BoardChat() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-        {sortedComments.length === 0 && !streamingText && !sending && (
+        {sortedComments.length === 0 && !streamingText && !sending && !optimisticMessage && (
           <div className="text-center py-12">
             <p className="text-sm text-muted-foreground mb-4">
               Ask me anything about your company — hiring, tasks, costs, approvals.
@@ -256,6 +290,15 @@ export function BoardChat() {
           );
         })}
 
+        {/* Optimistic user message — shows instantly before server persists */}
+        {optimisticMessage && (
+          <div className="flex justify-end">
+            <div className="max-w-[85%] px-3 py-2 text-sm bg-blue-600 text-white [border-radius:12px_12px_0px_12px]">
+              {optimisticMessage}
+            </div>
+          </div>
+        )}
+
         {/* Streaming response */}
         {streamingText && (
           <div className="flex justify-start">
@@ -265,18 +308,14 @@ export function BoardChat() {
           </div>
         )}
 
-        {/* Status / thinking indicator */}
-        {sending && !streamingText && (
-          <div className="flex justify-start">
-            <div className="rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-3 w-3 animate-spin shrink-0" />
-                <span>{statusText || "Thinking..."}</span>
-                {elapsedSec > 0 && (
-                  <span className="text-xs opacity-60">{elapsedSec}s</span>
-                )}
-              </div>
-            </div>
+        {/* Status bar — always visible while sending, independent from the chat bubble */}
+        {sending && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground pl-1">
+            <img src="/paperclip-thinking.svg" alt="" className="inline-block shrink-0" style={{ width: 14, height: 14 }} />
+            <span>{statusText || "Thinking..."}</span>
+            {elapsedSec > 0 && (
+              <span className="opacity-50">{elapsedSec}s</span>
+            )}
           </div>
         )}
 
@@ -293,7 +332,7 @@ export function BoardChat() {
             onKeyDown={handleKeyDown}
             placeholder="Ask anything about your company..."
             rows={1}
-            className="flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="flex-1 resize-none [border-radius:12px] border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             disabled={sending}
           />
           <Button
@@ -302,11 +341,7 @@ export function BoardChat() {
             disabled={!input.trim() || sending}
             className="shrink-0"
           >
-            {sending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>

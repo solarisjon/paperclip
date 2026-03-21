@@ -669,7 +669,7 @@ If nothing to create, output empty arrays. ALWAYS include this signal line.`;
         const created = await issueSvc.create(companyId, {
           title: "Board Operations",
           description: "Standing issue for board concierge conversations and decision log",
-          status: "in_progress",
+          status: "todo",
           priority: "medium",
         });
         issueId = created.id;
@@ -764,11 +764,28 @@ If nothing to create, output empty arrays. ALWAYS include this signal line.`;
         if (!line.trim()) continue;
         try {
           const event = JSON.parse(line);
+          // Helper: send a status event for tool use
+          const sendToolStatus = (toolName: string) => {
+            if (!res.writable) return;
+            let status = "Working...";
+            const name = toolName.toLowerCase();
+            if (name.includes("bash")) status = "Running a command...";
+            else if (name.includes("read")) status = "Reading a file...";
+            else if (name.includes("grep") || name.includes("search")) status = "Searching...";
+            else if (name.includes("glob")) status = "Finding files...";
+            else if (name.includes("write") || name.includes("edit")) status = "Editing a file...";
+            else if (name.includes("agent")) status = "Delegating work...";
+            else status = `Using ${toolName}...`;
+            res.write(`data: ${JSON.stringify({ type: "status", text: status })}\n\n`);
+          };
+
           if (event.type === "assistant" && event.message?.content) {
             for (const block of event.message.content) {
               if (block.type === "text" && block.text && res.writable) {
                 fullResponse += block.text;
                 res.write(`data: ${JSON.stringify({ type: "chunk", text: block.text })}\n\n`);
+              } else if (block.type === "tool_use" && block.name) {
+                sendToolStatus(block.name);
               }
             }
           } else if (event.type === "content_block_delta" && event.delta?.text) {
@@ -776,20 +793,10 @@ If nothing to create, output empty arrays. ALWAYS include this signal line.`;
             if (res.writable) {
               res.write(`data: ${JSON.stringify({ type: "chunk", text: event.delta.text })}\n\n`);
             }
-          } else if (event.type === "content_block_start" && event.content_block?.type === "tool_use" && res.writable) {
-            // Forward tool-use status so UI can show activity
-            const toolName = event.content_block.name ?? "working";
-            let statusText = "Working...";
-            if (toolName === "Bash" || toolName === "bash") {
-              statusText = "Running a command...";
-            } else if (toolName === "Read" || toolName === "read") {
-              statusText = "Reading a file...";
-            } else if (toolName === "Grep" || toolName === "grep") {
-              statusText = "Searching...";
-            } else {
-              statusText = `Using ${toolName}...`;
-            }
-            res.write(`data: ${JSON.stringify({ type: "status", text: statusText })}\n\n`);
+          } else if (event.type === "content_block_start" && event.content_block?.type === "tool_use") {
+            sendToolStatus(event.content_block.name ?? "tool");
+          } else if (event.subtype === "tool_use" || (event.type === "tool_use" && event.name)) {
+            sendToolStatus(event.name ?? "tool");
           } else if (event.type === "result" && event.result && !fullResponse) {
             fullResponse = event.result;
             if (res.writable) {

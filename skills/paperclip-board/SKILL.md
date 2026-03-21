@@ -230,6 +230,9 @@ Every new agent's system prompt MUST include these sections by default (unless t
 ```markdown
 # {Agent Name}
 
+## Model
+{Which model this agent uses. Default: sonnet}
+
 ## Description
 {One-line role summary}
 
