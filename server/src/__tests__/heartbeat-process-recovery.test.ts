@@ -129,7 +129,8 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       processLossRetryCount: input?.processLossRetryCount ?? 0,
       errorCode: input?.runErrorCode ?? null,
       error: input?.runError ?? null,
-      startedAt: now,
+      startedAt: input?.startedAt ?? now,
+      lastOutputAt: input?.lastOutputAt ?? null,
       updatedAt: new Date("2026-03-19T00:00:00.000Z"),
     });
 
@@ -159,6 +160,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     const { runId, wakeupRequestId } = await seedRunFixture({
       processPid: child.pid ?? null,
       includeIssue: false,
+      lastOutputAt: new Date(),
     });
     const heartbeat = heartbeatService(db);
 

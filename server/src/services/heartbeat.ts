@@ -1506,7 +1506,6 @@ export function heartbeatService(db: Db) {
       .then((rows) => rows[0] ?? null);
     if (!updated) return null;
 
-    const wasIdle = updated.errorCode === null; // errorCode was cleared
     await appendRunEvent(updated, await nextRunEventSeq(updated.id), {
       eventType: "lifecycle",
       stream: "system",
@@ -2509,27 +2508,30 @@ export function heartbeatService(db: Db) {
 
       const currentUserRedactionOptions = await getCurrentUserRedactionOptions();
       let lastOutputAtFlushPending = false;
+      let lastOutputAtLatest: Date | null = null;
       const onLog = async (stream: "stdout" | "stderr", chunk: string) => {
         const sanitizedChunk = redactCurrentUserText(chunk, currentUserRedactionOptions);
         if (stream === "stdout") stdoutExcerpt = appendExcerpt(stdoutExcerpt, sanitizedChunk);
         if (stream === "stderr") stderrExcerpt = appendExcerpt(stderrExcerpt, sanitizedChunk);
         const ts = new Date().toISOString();
+        lastOutputAtLatest = new Date(ts);
 
         // Batch lastOutputAt writes — flush at most once per 30 seconds to avoid DB churn
         if (!lastOutputAtFlushPending) {
           lastOutputAtFlushPending = true;
+          // Flush immediately on first output
+          await db.update(heartbeatRuns)
+            .set({ lastOutputAt: lastOutputAtLatest, updatedAt: new Date() })
+            .where(eq(heartbeatRuns.id, runId));
           setTimeout(() => {
             lastOutputAtFlushPending = false;
+            if (!lastOutputAtLatest) return;
             db.update(heartbeatRuns)
-              .set({ lastOutputAt: new Date(), updatedAt: new Date() })
+              .set({ lastOutputAt: lastOutputAtLatest, updatedAt: new Date() })
               .where(eq(heartbeatRuns.id, runId))
               .then(() => {})
               .catch((err) => logger.warn({ err, runId }, "failed to flush lastOutputAt"));
           }, 30_000);
-          // Also flush immediately on first output
-          await db.update(heartbeatRuns)
-            .set({ lastOutputAt: new Date(ts), updatedAt: new Date() })
-            .where(eq(heartbeatRuns.id, runId));
         }
 
         if (handle) {
