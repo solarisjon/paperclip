@@ -58,6 +58,14 @@ import {
 import { listCodexModels, refreshCodexModels } from "./codex-models.js";
 import { listCursorModels } from "./cursor-models.js";
 import {
+  execute as crushExecute,
+  listCrushSkills,
+  syncCrushSkills,
+  testEnvironment as crushTestEnvironment,
+  sessionCodec as crushSessionCodec,
+} from "@paperclipai/adapter-crush-local/server";
+import { agentConfigurationDoc as crushAgentConfigurationDoc, models as crushModels } from "@paperclipai/adapter-crush-local";
+import {
   execute as piExecute,
   listPiSkills,
   syncPiSkills,
@@ -187,6 +195,22 @@ const geminiLocalAdapter: ServerAdapterModule = {
   agentConfigurationDoc: geminiAgentConfigurationDoc,
 };
 
+const crushLocalAdapter: ServerAdapterModule = {
+  type: "crush_local",
+  execute: crushExecute,
+  testEnvironment: crushTestEnvironment,
+  listSkills: listCrushSkills,
+  syncSkills: syncCrushSkills,
+  sessionCodec: crushSessionCodec,
+  sessionManagement: getAdapterSessionManagement("crush_local") ?? undefined,
+  models: crushModels,
+  supportsLocalAgentJwt: true,
+  supportsInstructionsBundle: true,
+  instructionsPathKey: "instructionsFilePath",
+  requiresMaterializedRuntimeSkills: true,
+  agentConfigurationDoc: crushAgentConfigurationDoc,
+};
+
 const openclawGatewayAdapter: ServerAdapterModule = {
   type: "openclaw_gateway",
   execute: openclawGatewayExecute,
@@ -313,6 +337,7 @@ function registerBuiltInAdapters() {
   for (const adapter of [
     claudeLocalAdapter,
     codexLocalAdapter,
+    crushLocalAdapter,
     openCodeLocalAdapter,
     piLocalAdapter,
     cursorLocalAdapter,

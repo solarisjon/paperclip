@@ -14,23 +14,7 @@ patchedDependencies:
 
 importers:
 
-  .:
-    devDependencies:
-      '@playwright/test':
-        specifier: ^1.58.2
-        version: 1.58.2
-      cross-env:
-        specifier: ^10.1.0
-        version: 10.1.0
-      esbuild:
-        specifier: ^0.27.3
-        version: 0.27.3
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@25.2.3)(jiti@2.6.1)(jsdom@28.1.0(@noble/hashes@2.0.1))(lightningcss@1.30.2)(tsx@4.21.0)
+  .: {}
 
   cli:
     dependencies:
@@ -43,6 +27,9 @@ importers:
       '@paperclipai/adapter-codex-local':
         specifier: workspace:*
         version: link:../packages/adapters/codex-local
+      '@paperclipai/adapter-crush-local':
+        specifier: workspace:*
+        version: link:../packages/adapters/crush-local
       '@paperclipai/adapter-cursor-local':
         specifier: workspace:*
         version: link:../packages/adapters/cursor-local
@@ -122,6 +109,22 @@ importers:
         version: 5.9.3
 
   packages/adapters/codex-local:
+    dependencies:
+      '@paperclipai/adapter-utils':
+        specifier: workspace:*
+        version: link:../../adapter-utils
+      picocolors:
+        specifier: ^1.1.1
+        version: 1.1.1
+    devDependencies:
+      '@types/node':
+        specifier: ^24.6.0
+        version: 24.12.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
+  packages/adapters/crush-local:
     dependencies:
       '@paperclipai/adapter-utils':
         specifier: workspace:*
@@ -472,6 +475,9 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
+      '@types/node':
+        specifier: ^24.6.0
+        version: 24.12.0
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -487,6 +493,9 @@ importers:
       '@paperclipai/adapter-codex-local':
         specifier: workspace:*
         version: link:../packages/adapters/codex-local
+      '@paperclipai/adapter-crush-local':
+        specifier: workspace:*
+        version: link:../packages/adapters/crush-local
       '@paperclipai/adapter-cursor-local':
         specifier: workspace:*
         version: link:../packages/adapters/cursor-local
@@ -644,6 +653,9 @@ importers:
       '@paperclipai/adapter-codex-local':
         specifier: workspace:*
         version: link:../packages/adapters/codex-local
+      '@paperclipai/adapter-crush-local':
+        specifier: workspace:*
+        version: link:../packages/adapters/crush-local
       '@paperclipai/adapter-cursor-local':
         specifier: workspace:*
         version: link:../packages/adapters/cursor-local
@@ -2194,11 +2206,6 @@ packages:
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
-
-  '@playwright/test@1.58.2':
-    resolution: {integrity: sha512-akea+6bHYBBfA9uQqSYmlJXn61cTa+jbO87xVLCWbTqbWadRVmhxlXATaOjOgcBaWU4ePo0wB41KMFv3o35IXA==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   '@radix-ui/colors@3.0.0':
     resolution: {integrity: sha512-FUOsGBkHrYJwCSEtWRCIfQbZG7q1e6DgxCIOe1SUQzDe/7rXXeA47s8yCn6fuTNQAj1Zq4oTFi9Yjp3wzElcxg==}
@@ -4745,11 +4752,6 @@ packages:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
 
-  fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -5533,16 +5535,6 @@ packages:
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
-
-  playwright-core@1.58.2:
-    resolution: {integrity: sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  playwright@1.58.2:
-    resolution: {integrity: sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   points-on-curve@0.2.0:
     resolution: {integrity: sha512-0mYKnYYe9ZcqMCWhUjItv/oHjvgEsfKvnUTg8sAtnHr3GVy7rGkXCb6d5cSyqrWqL4k81b9CPg3urd+T7aop3A==}
@@ -8351,10 +8343,6 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@playwright/test@1.58.2':
-    dependencies:
-      playwright: 1.58.2
-
   '@radix-ui/colors@3.0.0': {}
 
   '@radix-ui/number@1.1.1': {}
@@ -11065,9 +11053,6 @@ snapshots:
 
   fresh@2.0.0: {}
 
-  fsevents@2.3.2:
-    optional: true
-
   fsevents@2.3.3:
     optional: true
 
@@ -12142,14 +12127,6 @@ snapshots:
       confbox: 0.1.8
       mlly: 1.8.1
       pathe: 2.0.3
-
-  playwright-core@1.58.2: {}
-
-  playwright@1.58.2:
-    dependencies:
-      playwright-core: 1.58.2
-    optionalDependencies:
-      fsevents: 2.3.2
 
   points-on-curve@0.2.0: {}
 
