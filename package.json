@@ -43,13 +43,6 @@
     "test:release-smoke:headed": "npx playwright test --config tests/release-smoke/playwright.config.ts --headed",
     "metrics:paperclip-commits": "tsx scripts/paperclip-commit-metrics.ts"
   },
-  "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "cross-env": "^10.1.0",
-    "esbuild": "^0.27.3",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.5"
-  },
   "engines": {
     "node": ">=20"
   },
