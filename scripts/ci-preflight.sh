@@ -43,7 +43,7 @@ run() {
 
 # ── 1. Lockfile policy ────────────────────────────────────────────────────────
 blue "Check: pnpm-lock.yaml not modified vs upstream/master"
-if git diff --name-only upstream/master...HEAD | grep -qx 'pnpm-lock.yaml'; then
+if git diff --name-only upstream/master..HEAD | grep -qx 'pnpm-lock.yaml'; then
   red "pnpm-lock.yaml is modified vs upstream/master"
   printf '    Fix: git checkout upstream/master -- pnpm-lock.yaml\n'
   FAILED=1
@@ -76,7 +76,7 @@ fi
 
 # ── 3. Dependency resolution ──────────────────────────────────────────────────
 blue "Check: package.json manifests resolve against lockfile"
-if git diff --name-only upstream/master...HEAD \
+if git diff --name-only upstream/master..HEAD \
     | grep -Eq '(^|/)package\.json$|^pnpm-workspace\.yaml$'; then
   run "dependency resolution" \
     pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
@@ -87,7 +87,7 @@ fi
 # ── 4. Typecheck ──────────────────────────────────────────────────────────────
 blue "Check: typecheck (changed packages only)"
 CHANGED_PKGS=()
-changed_files="$(git diff --name-only upstream/master...HEAD)"
+changed_files="$(git diff --name-only upstream/master..HEAD)"
 echo "$changed_files" | grep -q '^packages/db/'       && CHANGED_PKGS+=("@paperclipai/db")
 echo "$changed_files" | grep -q '^packages/shared/'   && CHANGED_PKGS+=("@paperclipai/shared")
 echo "$changed_files" | grep -q '^packages/adapters/' && CHANGED_PKGS+=("@paperclipai/adapter-crush-local")
