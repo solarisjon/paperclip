@@ -87,7 +87,9 @@ export async function listCrushModels(opts: { command?: unknown } = {}): Promise
     const models = await discoverCrushModels({ command });
     discoveryCache.set(command, { expiresAt: now + MODELS_CACHE_TTL_MS, models });
     return models;
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[crush-local] listCrushModels failed — returning empty model list. Reason: ${message}`);
     return [];
   }
 }
