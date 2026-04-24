@@ -43,9 +43,6 @@ importers:
       '@paperclipai/adapter-codex-local':
         specifier: workspace:*
         version: link:../packages/adapters/codex-local
-      '@paperclipai/adapter-crush-local':
-        specifier: workspace:*
-        version: link:../packages/adapters/crush-local
       '@paperclipai/adapter-cursor-local':
         specifier: workspace:*
         version: link:../packages/adapters/cursor-local
@@ -125,22 +122,6 @@ importers:
         version: 5.9.3
 
   packages/adapters/codex-local:
-    dependencies:
-      '@paperclipai/adapter-utils':
-        specifier: workspace:*
-        version: link:../../adapter-utils
-      picocolors:
-        specifier: ^1.1.1
-        version: 1.1.1
-    devDependencies:
-      '@types/node':
-        specifier: ^24.6.0
-        version: 24.12.0
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-
-  packages/adapters/crush-local:
     dependencies:
       '@paperclipai/adapter-utils':
         specifier: workspace:*
@@ -491,9 +472,6 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
-      '@types/node':
-        specifier: ^24.6.0
-        version: 24.12.0
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -509,9 +487,6 @@ importers:
       '@paperclipai/adapter-codex-local':
         specifier: workspace:*
         version: link:../packages/adapters/codex-local
-      '@paperclipai/adapter-crush-local':
-        specifier: workspace:*
-        version: link:../packages/adapters/crush-local
       '@paperclipai/adapter-cursor-local':
         specifier: workspace:*
         version: link:../packages/adapters/cursor-local
@@ -669,9 +644,6 @@ importers:
       '@paperclipai/adapter-codex-local':
         specifier: workspace:*
         version: link:../packages/adapters/codex-local
-      '@paperclipai/adapter-crush-local':
-        specifier: workspace:*
-        version: link:../packages/adapters/crush-local
       '@paperclipai/adapter-cursor-local':
         specifier: workspace:*
         version: link:../packages/adapters/cursor-local
