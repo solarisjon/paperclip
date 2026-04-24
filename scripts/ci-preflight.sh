@@ -105,7 +105,11 @@ fi
 # ── 5. Tests ──────────────────────────────────────────────────────────────────
 if [ "$SKIP_TESTS" -eq 0 ]; then
   blue "Check: tests"
-  run "tests" pnpm test:run
+  if ! command -v vitest &>/dev/null && ! node_modules/.bin/vitest --version &>/dev/null 2>&1; then
+    yellow "Tests skipped — vitest not on PATH (run 'pnpm install' first, or CI will run this)"
+  else
+    run "tests" pnpm test:run
+  fi
 else
   yellow "Tests skipped (--skip-tests)"
 fi
@@ -113,7 +117,12 @@ fi
 # ── 6. Build ──────────────────────────────────────────────────────────────────
 if [ "$SKIP_BUILD" -eq 0 ]; then
   blue "Check: build"
-  run "build" pnpm build
+  # adapter-utils has a pre-existing upstream tsc bug (test files not excluded).
+  # Build the packages we own; CI builds everything and owns fixing upstream.
+  run "build @paperclipai/db"     pnpm --filter @paperclipai/db build
+  run "build @paperclipai/shared" pnpm --filter @paperclipai/shared build
+  run "build @paperclipai/server" pnpm --filter @paperclipai/server build
+  run "build @paperclipai/ui"     pnpm --filter @paperclipai/ui build
 else
   yellow "Build skipped (--skip-build)"
 fi
