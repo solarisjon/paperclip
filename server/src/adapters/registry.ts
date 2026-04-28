@@ -63,6 +63,7 @@ import {
   syncCrushSkills,
   testEnvironment as crushTestEnvironment,
   sessionCodec as crushSessionCodec,
+  listCrushModels,
 } from "@paperclipai/adapter-crush-local/server";
 import { agentConfigurationDoc as crushAgentConfigurationDoc, models as crushModels } from "@paperclipai/adapter-crush-local";
 import {
@@ -204,6 +205,7 @@ const crushLocalAdapter: ServerAdapterModule = {
   sessionCodec: crushSessionCodec,
   sessionManagement: getAdapterSessionManagement("crush_local") ?? undefined,
   models: crushModels,
+  listModels: listCrushModels,
   supportsLocalAgentJwt: true,
   supportsInstructionsBundle: true,
   instructionsPathKey: "instructionsFilePath",

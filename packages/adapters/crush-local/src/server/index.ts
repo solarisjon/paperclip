@@ -1,6 +1,7 @@
 export { execute, isCrushUnknownSessionError } from "./execute.js";
 export { listCrushSkills, syncCrushSkills } from "./skills.js";
 export { testEnvironment } from "./test.js";
+export { listCrushModels, discoverCrushModels } from "./models.js";
 
 import type { AdapterSessionCodec } from "@paperclipai/adapter-utils";
 
